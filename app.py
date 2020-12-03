@@ -66,8 +66,36 @@ def precipitation():
 
     return jsonify(all_prcp)
 
-# @app.route("/api/v1.0/stations")
-# @app.route("/api/v1.0/tobs")
+@app.route("/api/v1.0/stations")
+def stations():
+    session = Session(engine)
+
+    results = session.query(Station.station, Station.name).all()
+
+    session.close()
+
+    stationList = []
+    for result in results:
+        stationList.append(result[1])
+
+    return jsonify(stationList)
+
+
+@app.route("/api/v1.0/tobs")
+def tobs():
+    session = Session(engine)
+
+    sel = [Measurement.station, func.count(Measurement.station)]
+    activityCounts = session.query(*sel).group_by(Measurement.station).order_by(func.count(Measurement.station).desc()).all()
+    mostActive = activityCounts[0][0]
+    results = session.query(Measurement.date, Measurement.tobs).filter(Measurement.station == mostActive).\
+                filter(Measurement.date >= '2016-08-23').all()
+
+    session.close()
+
+    tobsList = list(np.ravel(results))
+
+    return jsonify(tobsList)
 # @app.route("api/v1.0/<start>")
 # @app.route("/api/v1.0/<start>/<end>")
 
