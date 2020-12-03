@@ -96,8 +96,46 @@ def tobs():
     tobsList = list(np.ravel(results))
 
     return jsonify(tobsList)
-# @app.route("api/v1.0/<start>")
-# @app.route("/api/v1.0/<start>/<end>")
+@app.route("/api/v1.0/<start>")
+def tempRangeStart(start):
+    session = Session(engine)
+
+    results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+                filter(Measurement.date >= start).all()
+
+    session.close()
+
+    tobsAll = []
+    for result in results:
+        newDict = {}
+        newDict['Date'] = start
+        newDict['TMIN'] = result[0]
+        newDict['TAVG'] = result[1]
+        newDict['TMAX'] = result[2]
+        
+        tobsAll.append(newDict)
+
+    return jsonify(tobsAll)
+@app.route("/api/v1.0/<start>/<end>")
+def tempRangeStartEnd(start, end):
+    session = Session(engine)
+
+    results = session.query(func.min(Measurement.tobs), func.avg(Measurement.tobs), func.max(Measurement.tobs)).\
+                filter(Measurement.date >= start).filter(Measurement.date <= end).all()
+
+    session.close()
+
+    tobsAll = []
+
+    for result in results:
+        newDict = {}
+        newDict['Date'] = start
+        newDict['TMIN'] = result[0]
+        newDict['TAVG'] = result[1]
+        newDict['TMAX'] = result[2]
+        tobsAll.append(newDict)
+
+    return jsonify(tobsAll)
 
 if __name__ == '__main__':
     app.run(debug=True)
