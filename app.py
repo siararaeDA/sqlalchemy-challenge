@@ -5,6 +5,8 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
 
+import datetime as dt
+
 from flask import Flask, jsonify, render_template
 
 #################################################
@@ -38,19 +40,31 @@ def welcome():
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
-    # Create our session (link) from Python to the DB
+    # Create session
     session = Session(engine)
 
-    """Return a list of all countries. Note there may be dupes - why?"""
-    # Query all passengers
-    results = session.query(Invoices.BillingCountry).all()
+    # Calculate the date 1 year ago from the last data point in the database
+    mostRecent = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
+    #print(mostRecent) - 08/23/2017
+    firstDate = dt.datetime(2016, 8, 23)
+
+    # Perform a query to retrieve the data and precipitation scores
+    results = session.query(Measurement.date, Measurement.prcp).\
+            filter(Measurement.date >= firstDate).\
+            order_by(Measurement.date).all()
 
     session.close()
 
     # Convert list of tuples into normal list
-    all_countries = list(np.ravel(results))
+    all_prcp = []
+    for result in results:
+        prcpDict = {}
+        prcpDict['date'] = result[0]
+        prcpDict['prcp'] = result[1]
 
-    return jsonify(all_countries)
+        all_prcp.append(prcpDict)
+
+    return jsonify(all_prcp)
 
 # @app.route("/api/v1.0/stations")
 # @app.route("/api/v1.0/tobs")
