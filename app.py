@@ -5,12 +5,12 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, func
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///../Resources/hawaii.sqlite")
+engine = create_engine("sqlite:///Resources/hawaii.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
@@ -32,16 +32,12 @@ app = Flask(__name__)
 
 @app.route("/")
 def welcome():
-    """List all available api routes."""
-    return (
-        f"Available Routes:<br/>"
-        f"/countries<br/>"
-        f"/billing"
-    )
+    # Found this option via Stack Overflow
+    return render_template('routes.html')
 
 
 @app.route("/api/v1.0/precipitation")
-def names():
+def precipitation():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
@@ -56,7 +52,10 @@ def names():
 
     return jsonify(all_countries)
 
-@app.route("/api/v1.0/stations")
-@app.route("/api/v1.0/tobs")
-@app.route("api/v1.0/<start>")
-@app.route("/api/v1.0/<start>/<end>")
+# @app.route("/api/v1.0/stations")
+# @app.route("/api/v1.0/tobs")
+# @app.route("api/v1.0/<start>")
+# @app.route("/api/v1.0/<start>/<end>")
+
+if __name__ == '__main__':
+    app.run(debug=True)
